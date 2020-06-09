@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="zh" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="zh" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>图神经网络初探 &mdash; GCN&amp;GAT 1.0 文档</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+    <link rel="prev" title="Welcome to test&#39;s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> GCN&GAT
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">图神经网络初探</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">背景</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">提取拓扑图空间特征</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gcn">GCN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gat">GAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">如何预测边</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">实验结果</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">总结</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GCN&GAT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>图神经网络初探</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/GCN&amp;GAT.MD.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="id1">
+<h1>图神经网络初探<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<blockquote>
+<div><p>GCN &amp; GAT</p>
+</div></blockquote>
+<div class="section" id="id2">
+<h2>背景<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<ul class="simple">
+<li><p>技术：顾名思义，图神经网络就是用来建模<strong>拓扑图</strong>的数据，<strong>其基本思想就是基于节点的局部邻居信息对节点进行embedding</strong>。广义上来讲任何数据在赋范空间内都可以建立拓扑关联，图神经网络的应用前景是广泛的。</p></li>
+<li><p>业务：PDF解析项目中有个任务----判断pdf中元素是否需要合并（相同类型合并，如段落、图片、表格...）。现有的方法是用xgboost训练分类模型，没有直接建模空间信息，尝试使用图算法解决。</p></li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h2>提取拓扑图空间特征<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h2>
+<p>两个问题：</p>
+<ul class="simple">
+<li><p>怎么拿到不同数目的邻居节点</p></li>
+<li><p>邻居节点的特征怎么处理</p></li>
+</ul>
+<p>两种方式：</p>
+<ul class="simple">
+<li><p>频谱域。不用考虑邻居节点数目，直接对<strong>特征</strong>进行处理。如：GCN。</p></li>
+<li><p>空间域。需要针对所有节点进行计算，再从中把邻居挑出来进行处理。如：GAT。</p></li>
+</ul>
+</div>
+<div class="section" id="gcn">
+<h2>GCN<a class="headerlink" href="#gcn" title="永久链接至标题">¶</a></h2>
+<p>由于不考虑邻居节点数目，涉及了矩阵变换的推导，比较复杂，这里跳过。</p>
+<p><img alt="_images/gcn_1.jpg" src="_images/gcn_1.jpg" /></p>
+<p><img alt="_images/gcn.jpg" src="_images/gcn.jpg" /></p>
+<p>注意：GCN不用考虑邻居节点数目，而每一层的邻居节点的权重是共享的，没有考虑不同邻居节点的差异性。</p>
+</div>
+<div class="section" id="gat">
+<h2>GAT<a class="headerlink" href="#gat" title="永久链接至标题">¶</a></h2>
+<blockquote>
+<div><p>Graph Attention Network</p>
+</div></blockquote>
+<p>GAT的优势就是利用attention为不同的邻居节点分配了不同的权重。</p>
+<p><img alt="_images/gat.jpg" src="_images/gat.jpg" /></p>
+<p>核心代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">attn_head</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">out_sz</span><span class="p">,</span> <span class="n">bias_mat</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">in_drop</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">coef_drop</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s1">&#39;my_attn&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">in_drop</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">seq</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">in_drop</span><span class="p">)</span>
+
+        <span class="n">seq_fts</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">out_sz</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="c1"># simplest self-attention possible</span>
+        <span class="n">f_1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span><span class="n">seq_fts</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">f_2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span><span class="n">seq_fts</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">f_1</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">f_2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">leaky_relu</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span> <span class="o">+</span> <span class="n">bias_mat</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">coef_drop</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">coefs</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">coef_drop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">in_drop</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">seq_fts</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">seq_fts</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">in_drop</span><span class="p">)</span>
+
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">coefs</span><span class="p">,</span> <span class="n">seq_fts</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+
+        <span class="c1"># residual connection</span>
+        <span class="k">if</span> <span class="n">residual</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">ret</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span> <span class="o">+</span> <span class="n">conv1d</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">ret</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># activation</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span> <span class="o">+</span> <span class="n">seq</span>
+
+        <span class="k">return</span> <span class="n">activation</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>  <span class="c1"># activation</span>
+</pre></div>
+</div>
+<p>注意：<strong>这里的bias_mat是根据邻接矩阵生成的attention mask</strong>，用于过滤邻居节点，细节如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">adj_to_bias</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">sizes</span><span class="p">,</span> <span class="n">nhood</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">nb_graphs</span> <span class="o">=</span> <span class="n">adj</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">mt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">adj</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_graphs</span><span class="p">):</span>
+        <span class="n">mt</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">adj</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nhood</span><span class="p">):</span>
+            <span class="n">mt</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">mt</span><span class="p">[</span><span class="n">g</span><span class="p">],</span> <span class="p">(</span><span class="n">adj</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">adj</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sizes</span><span class="p">[</span><span class="n">g</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sizes</span><span class="p">[</span><span class="n">g</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">mt</span><span class="p">[</span><span class="n">g</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">mt</span><span class="p">[</span><span class="n">g</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mf">1e9</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">mt</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>如何预测边<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h2>
+<p>图神经网络的工作基本都是在编码节点embedding，大多用于节点分类。如果需要进行边分类，可以对模型稍加改造：<strong>将节点embedding抽出，处理成边特征，从而进行边预测</strong>。</p>
+<p>DistMult方法核心代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">calc_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">embedding</span><span class="p">,</span> <span class="n">triplets</span><span class="p">):</span>
+        <span class="c1"># DistMult</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">embedding</span><span class="p">[</span><span class="n">triplets</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_relation</span><span class="p">[</span><span class="n">triplets</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="n">embedding</span><span class="p">[</span><span class="n">triplets</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">o</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">score</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h2>实验结果<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h2>
+<p><img alt="_images/gat_1.jpg" src="_images/gat_1.jpg" /></p>
+<p>PDF元素分类实验：</p>
+<p><img alt="_images/all_1.jpg" src="_images/all_1.jpg" /></p>
+</div>
+<div class="section" id="id6">
+<h2>总结<a class="headerlink" href="#id6" title="永久链接至标题">¶</a></h2>
+<ul class="simple">
+<li><p>目前图神经网络多用于节点分类和边预测，在图优化等其他任务上基本没有应用。</p></li>
+<li><p>图神经网络对图结构有很大的依赖，对不同图结构的范化能力较差。</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to test&#39;s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, chenxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

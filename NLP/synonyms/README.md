@@ -1,0 +1,12 @@
+## Synonyms 
+- a minimally supervised approach for synonym extraction 
+- Automatic Synonym Discovery with Knowledge Bases 
+- cross-lingual induction and transfer of verb classes 
+- deep learning for entity matching 
+- Distant Supervision for Relation Extraction with 
+- Enhanced LSTM for Natural Language Inference 
+- Mining Entity Synonyms with Efficient Neural Set Generation 
+- self-supervised synonym extraction from the web 
+- SurfCon Synonym Discovery on Privacy-Aware Clinical Data 
+- SYNONYMNET Multi-context Bilateral Matching for Entity Synonyms 
+- using pseudo-senses for improving the extraction of synonyms from word embeddings 

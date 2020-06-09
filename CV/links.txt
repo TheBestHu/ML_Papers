@@ -1,0 +1,2 @@
+kaiming he:图像领域的预训练模型
+https://www.jiqizhixin.com/articles/2019-11-15-6
