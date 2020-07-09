@@ -1,4 +1,5 @@
-## GCN
+## Pretrain Models
+预训练模型的优化和进展，包括但不仅限于BERT系列
 
 ### 论文
 - [5t_exploring the limits of transfer learning](https://arxiv.org/abs/1910.10683)
@@ -10,3 +11,4 @@
 - [Pre-Training with Whole Word Masking for Chinese BERT](https://arxiv.org/abs/1906.08101)
 - [Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks](https://arxiv.org/abs/1908.10084)
 - [Talking-heads Attention](https://arxiv.org/abs/2003.02436)
+- [Don't Stop Pretraining: Adapt Language Models to domains and tasks](https://www.aclweb.org/anthology/2020.acl-main.740.pdf)
