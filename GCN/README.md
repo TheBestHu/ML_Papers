@@ -5,12 +5,13 @@
 - [SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS](https://arxiv.org/abs/1609.02907)
 
 
-
 综述：
 1、A Comprehensive Survey of Graph Embedding:Problems, Techniques and Applications
 2、Graph Embedding Techniques, Applications, and Performance: A Survey
 3、https://www.jiqizhixin.com/articles/2019-05-16-14
 4、https://www.jiqizhixin.com/articles/2018-08-14-10
+
+5、Graph Representation Learning [link](https://www.cs.mcgill.ca/~wlh/grl_book/files/GRL_Book.pdf)
 
 常见的算法：
 1、DeepWalk: Online Learning of Social Representations
